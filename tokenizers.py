@@ -33,6 +33,7 @@ class LaTeXTokenizer:
         return self.vocab[self.unk_token]
 
     def encode(self, x, add_special_tokens=False, return_tensor=False):
+        """Encode tokens `x` to token ids"""
         if isinstance(x, Sequence):
             result = [self.vocab.get(token, self.unk_token_id) for token in x]
             if add_special_tokens:
@@ -45,6 +46,7 @@ class LaTeXTokenizer:
         return torch.tensor(result) if return_tensor else result
         
     def decode(self, x):
+        """Decode token ids `x` to tokens"""
         if isinstance(x, Sequence):
             return [self.id_to_token[token_id] for token_id in x]
         else:
@@ -52,6 +54,7 @@ class LaTeXTokenizer:
 
     @classmethod
     def load_from(cls, vocab_file):
+        """Load vocabulary from the file."""
         with open(vocab_file) as f:
             _vocab = json.load(f)
 

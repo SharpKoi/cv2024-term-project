@@ -152,6 +152,14 @@ class LaTeXOCRModel(nn.Module):
         return y_hat
 
     def predict(self, x: torch.Tensor):
+        """Generate the latex sequences of the input images `x`.
+
+        Args:
+            x (torch.Tensor): the input image batch
+
+        Returns:
+            torch.Tensor: the completed latex token sequences
+        """
         B = x.size(0)
         S = self.decoder.MAX_SEQ_LENGTH
         bos_id = self.tokenizer.bos_token_id
@@ -163,6 +171,7 @@ class LaTeXOCRModel(nn.Module):
         result = torch.full(size=(B, S), fill_value=pad_id, dtype=torch.int64, device=x.device)
         result[:, 0] = bos_id
 
+        # generate the latex expressions token-by-token
         completed = torch.full(size=(B,), fill_value=False, device=x.device)
         for idx in range(1, S):
             y = result[:, :idx]

@@ -40,6 +40,8 @@ EPOCHS = 20
 VAL_EPOCHS = 2
 BATCH_SIZE = 8
 LR = 2e-4
+MILESTONES = [5,10,15,20]
+GAMMA = 0.5
 
 
 def build_ocr_model(tokenizer: LaTeXTokenizer):
@@ -99,5 +101,5 @@ if __name__ == "__main__":
     # training
     logger = MLFlowLogger(experiment_name="CV2024 Term Project", log_model=True)
     trainer = L.Trainer(min_epochs=1, max_epochs=EPOCHS, check_val_every_n_epoch=VAL_EPOCHS, logger=logger)
-    lit_model = LitLaTeXOCRModel(model, lr=LR, weight_decay=0.0001, milestones=[5,10,15,20], gamma=0.5)
+    lit_model = LitLaTeXOCRModel(model, lr=LR, weight_decay=0.0001, milestones=MILESTONES, gamma=GAMMA)
     trainer.fit(lit_model, train_loader, test_loader)

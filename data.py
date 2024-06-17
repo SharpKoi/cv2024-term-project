@@ -13,11 +13,20 @@ from tokenizers import LaTeXTokenizer
 
 
 class AidaDataset(Dataset):
+    """The Aida dataset including handwriting math expression images."""
     def __init__(self, 
                  data_dir: str, 
                  tokenizer: LaTeXTokenizer,
                  mode: Literal["all", "train", "test"] = "all", 
                  transform: Optional[Callable] = None):
+        """init the aida dataset to have image inputs and latex targets.
+
+        Args:
+            data_dir (str): the directory to load from
+            tokenizer (LaTeXTokenizer): the tokenizer to encode the latex sequence
+            mode (Literal["all", "train", "test"], optional): which samples to be included. Defaults to "all".
+            transform (Optional[Callable], optional): the transforms to be applied on each images sample. Defaults to None.
+        """
         self.data_dir = data_dir
         self.tokenizer = tokenizer
         self.transform = transform

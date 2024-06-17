@@ -12,6 +12,7 @@ from torchvision.transforms.v2 import Pad, Resize
 
 
 class FixedAspectResize(nn.Module):
+    """Pad and resize the image to a specific size while fixing the aspect ratio."""
     def __init__(self, target_size):
         super().__init__()
 
@@ -50,6 +51,7 @@ class FixedAspectResize(nn.Module):
 
 
 class RandomSpots(nn.Module):
+    """Add some random spots to the image."""
     def __init__(self, spots_range, w_range, h_range):
         super().__init__()
         
@@ -64,14 +66,17 @@ class RandomSpots(nn.Module):
         
         h, w = image.shape
 
+        # random spot number and random angle
         num_spots = random.randint(*self.spots_range)
         angle = random.randint(0, 360)
         for _ in range(num_spots):
+            # random position and random size
             center_x = random.randint(0, w - 1)
             center_y = random.randint(0, h - 1)
             spot_w = random.randint(*self.w_range)
             spot_h = random.randint(*self.h_range)
             
+            # create the ellipse
             image = cv2.ellipse(
                 image, 
                 center=(center_x, center_y), 
@@ -87,23 +92,29 @@ class RandomSpots(nn.Module):
 
 
 class Binarization(nn.Module):
+    """Binarize the image."""
     def __init__(self, inv_color=False):
         super().__init__()
 
         self.inv_color = inv_color
 
     def forward(self, image):
+        # convert image to gray
         gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         if self.inv_color:
+            # invert the color if the handwritings are brighter than the background
             gray_image = 255 - gray_image
         
+        # blur and get the handwritings
         blurred_image = cv2.GaussianBlur(gray_image, (3, 3), 1)
         background = cv2.blur(blurred_image, (11, 11))
         foreground = cv2.subtract(blurred_image, background)
 
+        # enhance the contrast between the handwriting and the blackboard
         clahe = cv2.createCLAHE(clipLimit=2, tileGridSize=(12, 12))
         enhanced_foreground = clahe.apply(foreground)
 
+        # binarization
         _, binary_image = cv2.threshold(
             src=enhanced_foreground, 
             thresh=0, maxval=255, 
