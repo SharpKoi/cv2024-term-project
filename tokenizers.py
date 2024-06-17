@@ -16,6 +16,19 @@ class LaTeXTokenizer:
 
         self.id_to_token = {v: k for k, v in vocab.items()}
 
+        self._special_tokens = {
+            bos_token, 
+            eos_token, 
+            pad_token, 
+            unk_token
+        }
+        self._special_token_ids = {
+            self.bos_token_id, 
+            self.eos_token_id, 
+            self.pad_token_id, 
+            self.unk_token_id
+        }
+
     @property
     def bos_token_id(self):
         return self.vocab[self.bos_token]
@@ -45,12 +58,16 @@ class LaTeXTokenizer:
 
         return torch.tensor(result) if return_tensor else result
         
-    def decode(self, x):
+    def decode(self, x, remove_special_tokens=False):
         """Decode token ids `x` to tokens"""
         if isinstance(x, Sequence):
-            return [self.id_to_token[token_id] for token_id in x]
+            if remove_special_tokens:
+                x = [token_id for token_id in x if token_id not in self._special_token_ids]
+            result = [self.id_to_token[token_id] for token_id in x]
         else:
-            return self.id_to_token[x]
+            result = self.id_to_token[x]
+
+        return result
 
     @classmethod
     def load_from(cls, vocab_file):

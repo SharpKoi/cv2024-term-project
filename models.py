@@ -199,6 +199,7 @@ class LaTeXOCRModel(nn.Module):
 class LitLaTeXOCRModel(L.LightningModule):
     def __init__(self, model: LaTeXOCRModel, lr: float, weight_decay: float, milestones: List[int] = [5], gamma: float = 0.1):
         super().__init__()
+        self.save_hyperparameters(ignore=["model"])
 
         self.model = model
         self.tokenizer = self.model.tokenizer
