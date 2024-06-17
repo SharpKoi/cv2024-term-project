@@ -1,3 +1,4 @@
+from typing import List
 import math
 
 import torch
@@ -187,7 +188,7 @@ class LaTeXOCRModel(nn.Module):
 
 
 class LitLaTeXOCRModel(L.LightningModule):
-    def __init__(self, model: LaTeXOCRModel, lr: float, weight_decay: float):
+    def __init__(self, model: LaTeXOCRModel, lr: float, weight_decay: float, milestones: List[int] = [5], gamma: float = 0.1):
         super().__init__()
 
         self.model = model
@@ -195,6 +196,8 @@ class LitLaTeXOCRModel(L.LightningModule):
 
         self.lr = lr
         self.weight_decay = weight_decay
+        self.milestones = milestones
+        self.gamma = gamma
 
         self.criterion = nn.CrossEntropyLoss(ignore_index=self.tokenizer.pad_token_id)
         self.cer_metric = CharacterErrorRate(
@@ -208,13 +211,14 @@ class LitLaTeXOCRModel(L.LightningModule):
 
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(self.model.parameters(), lr=self.lr, weight_decay=self.weight_decay)
-        return [optimizer]
+        scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=self.milestones, gamma=self.gamma)
+        return [optimizer], [scheduler]
 
     def training_step(self, batch, batch_idx):
         imgs, targets = batch
         logits: torch.Tensor = self.model(imgs, targets[:, :-1])  # (B, S, C)
         loss = self.criterion(logits.permute(0, 2, 1), targets[:, 1:])
-        self.log("train/loss", loss)
+        self.log("train/loss", loss, prog_bar=True)
         return loss
 
     def validation_step(self, batch, batch_idx):

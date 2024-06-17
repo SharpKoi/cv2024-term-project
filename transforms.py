@@ -72,7 +72,7 @@ class RandomSpots(nn.Module):
             spot_w = random.randint(*self.w_range)
             spot_h = random.randint(*self.h_range)
             
-            new_image = cv2.ellipse(
+            image = cv2.ellipse(
                 image, 
                 center=(center_x, center_y), 
                 axes=(spot_w, spot_h), 
@@ -83,7 +83,7 @@ class RandomSpots(nn.Module):
                 thickness=cv2.FILLED
             )
 
-        return new_image
+        return image
 
 
 class Binarization(nn.Module):

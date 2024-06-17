@@ -34,11 +34,13 @@ class AidaDataset(Dataset):
             pbar.set_postfix_str(sample_id)
             fp = path_join(data_dir, sample_id)
 
-            img = cv2.imread(path_join(fp, "masked_image.png"), cv2.IMREAD_GRAYSCALE)
+            image = cv2.imread(path_join(fp, "masked_image.png"), cv2.IMREAD_GRAYSCALE)
             with open(path_join(fp, "metadata.json")) as f:
                 metadata = json.load(f)
+            latex = metadata['image_data']['full_latex_chars']
+            target = tokenizer.encode(latex, add_special_tokens=True, return_tensor=True)
 
-            self._data.append((img, tokenizer.encode(metadata['image_data']['full_latex_chars'], return_tensor=True)))
+            self._data.append((image, target))
         
     def __len__(self):
         return len(self._data)

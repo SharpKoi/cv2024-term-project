@@ -36,8 +36,10 @@ torch.manual_seed(SEED)
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 INPUT_SIZE = 512
+EPOCHS = 20
+VAL_EPOCHS = 2
 BATCH_SIZE = 8
-LR = 1e-3
+LR = 2e-4
 
 
 def build_ocr_model(tokenizer: LaTeXTokenizer):
@@ -45,15 +47,15 @@ def build_ocr_model(tokenizer: LaTeXTokenizer):
     encoder = LaTeXOCREncoder(
         encoder_backbone, 
         d_backbone=512, 
-        d_model=128,
+        d_model=256,
     )
 
     decoder = LaTeXOCRDecoder(
         tokenizer.vocab_size, 
-        d_model=128, 
-        n_heads=4, 
-        ff_dim=256, 
-        n_layers=3, 
+        d_model=256,
+        n_heads=4,
+        ff_dim=512,
+        n_layers=3,
         dropout=0.1,
     )
 
@@ -66,9 +68,10 @@ def build_ocr_model(tokenizer: LaTeXTokenizer):
 if __name__ == "__main__":
     print("Loading data ...")
     train_transform = T.Compose([
-        RandomSpots(spots_range=(3, 7), w_range=(5, 10), h_range=(3, 5)),
+        RandomSpots(spots_range=(0, 5), w_range=(4, 8), h_range=(2, 4)),
         T.ToImage(),
         FixedAspectResize(512),
+        T.RandomRotation(degrees=10),
         T.ToDtype(torch.float32),
     ])
     test_transform = T.Compose([
@@ -95,6 +98,6 @@ if __name__ == "__main__":
 
     # training
     logger = MLFlowLogger(experiment_name="CV2024 Term Project", log_model=True)
-    trainer = L.Trainer(min_epochs=1, max_epochs=100, check_val_every_n_epoch=1, logger=logger)
-    lit_model = LitLaTeXOCRModel(model, lr=LR, weight_decay=0.01)
+    trainer = L.Trainer(min_epochs=1, max_epochs=EPOCHS, check_val_every_n_epoch=VAL_EPOCHS, logger=logger)
+    lit_model = LitLaTeXOCRModel(model, lr=LR, weight_decay=0.0001, milestones=[5,10,15,20], gamma=0.5)
     trainer.fit(lit_model, train_loader, test_loader)

@@ -32,11 +32,15 @@ class LaTeXTokenizer:
     def unk_token_id(self):
         return self.vocab[self.unk_token]
 
-    def encode(self, x, return_tensor=False):
+    def encode(self, x, add_special_tokens=False, return_tensor=False):
         if isinstance(x, Sequence):
-            result = [self.vocab.get(token, self.pad_token_id) for token in x]
+            result = [self.vocab.get(token, self.unk_token_id) for token in x]
+            if add_special_tokens:
+                result = [self.bos_token_id] + result + [self.eos_token_id]
         else:
-            result = self.vocab.get(x, self.pad_token_id)
+            result = self.vocab.get(x, self.unk_token_id)
+            if add_special_tokens:
+                result = [self.bos_token_id, result, self.eos_token_id]
 
         return torch.tensor(result) if return_tensor else result
         
